@@ -6,18 +6,25 @@ from passlib.hash import pbkdf2_sha256
 import uuid
 
 
+HASHER = pbkdf2_sha256.using(rounds=10000)
+
+
 class User(MongoCollection):
     COLLECTION = 'auth_users'
 
+    def init(self):
+        super(User, self).init()
+
+        self.collection.create_index('username', unique=True)
+        self.collection.create_index('active')
+
     def create(self, username, password, active=False):
-        user_uuid = uuid.uuid4().hex
-        password = pbkdf2_sha256.hash(password)
+        password = HASHER.hash(password)
 
         user_obj = {
-            'uuid': user_uuid,
             'username': username,
             'password': password,
-            'is_active': active,
+            'active': active,
             'created_on': datetime.utcnow()
         }
         self.collection.insert_one(user_obj)
@@ -28,7 +35,10 @@ class User(MongoCollection):
     def verify_login(self, username, password):
         user_obj = self.collection.find_one(
             {'username': username, 'active': True})
-        return pbkdf2_sha256.verify(password, user_obj['password'])
+        if user_obj:
+            return HASHER.verify(password, user_obj['password'])
+        else:
+            return False
 
     def activate(self, username):
         self.collection.update(

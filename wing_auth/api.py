@@ -12,6 +12,17 @@ class AuthAPI(object):
         self.session = session
         URLHelper.mount(app, self, base_url)
 
+    @url(pattern='/users/me')
+    def users_me(self, ctx):
+        sess = self.session.get(ctx)
+        ctx.response.set_json({
+            'status': 'OK',
+            'payload': {
+                'username': sess.user.username,
+                'is_authenticated': sess.user.is_authenticated
+            }
+        })
+
     @url(pattern='/users', method='POST')
     def users_create(self, ctx):
         q = ctx.request.query
@@ -29,13 +40,14 @@ class AuthAPI(object):
         q = ctx.request.query
         username = q['username'][0]
         password = q['password'][0]
-        result = self.backend.user_check_login(
+        result = self.backend.login(
+            ctx,
             username=username,
             password=password
         )
 
         if result:
-            sess = ctx[self.session.session_var]
+            sess = self.session.get(ctx)
             sess.user.is_authenticated = True
             sess.user.username = username
 
@@ -51,7 +63,7 @@ class AuthAPI(object):
 
     @url(pattern='/users/operations/logout')
     def users_operations_logout(self, ctx):
-        sess = ctx[self.session.session_var]
+        sess = self.session.get(ctx)
         sess.user.is_authenticated = False
         sess.user.username = 'anonymus'
 

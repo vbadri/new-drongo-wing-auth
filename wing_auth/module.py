@@ -15,12 +15,12 @@ class Auth(Module):
 
         database = self.modules.database
 
-        if database.type == Database.MYSQL:
-            from .backends._mysql import MysqlBackend
-            self.backend = MysqlBackend(config)
-        elif database.type == Database.MONGO:
+        if database.type == Database.MONGO:
             from .backends._mongo import MongoBackend
             self.backend = MongoBackend(config)
+
+        else:
+            raise NotImplementedError
 
         self.backend.init()
 
@@ -30,7 +30,7 @@ class Auth(Module):
                 app=self.app,
                 base_url=self.api_base_url,
                 backend=self.backend,
-                session=self.session_module
+                session=self.modules.session
             )
 
         if not self.backend.check_user_exists('admin'):
