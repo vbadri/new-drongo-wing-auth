@@ -22,14 +22,29 @@ class MongoBackend(object):
     def check_user_exists(self, username):
         return self.users.check_exists(username)
 
-    def create_user(self, username, password, active=False):
-        self.users.create(username, password, active)
+    def create_user(self, username, password, active=False, superuser=False):
+        self.users.create(username, password, active, superuser)
 
-    def login(self, ctx, username, password):
-        return self.users.verify_login(username, password)
+    def check_user_password(self, username, password):
+        return self.users.check_password(username, password)
 
-    def logout(self, ctx):
+    def activate_user(self, username, code):
         pass
 
-    def activate(self, username, code):
+    def create_group(self, groupname, description=None):
+        pass
+
+    def delete_group(self, groupname):
+        pass
+
+    def add_user_to_group(self, groupname, username):
+        pass
+
+    def remove_user_from_group(self, groupname, username):
+        pass
+
+    def get_users_in_group(self, groupname):
+        pass
+
+    def get_groups_for_user(self, username):
         pass

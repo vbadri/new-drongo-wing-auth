@@ -10,6 +10,7 @@ class Auth(Module):
 
         self.base_url = config.get('base_url', '/auth')
         self.api_base_url = config.get('api_base_url', '/api/auth')
+
         self.enable_api = config.get('enable_api', False)
         self.enable_views = config.get('enable_views', False)
 
@@ -34,4 +35,9 @@ class Auth(Module):
             )
 
         if not self.backend.check_user_exists('admin'):
-            self.backend.create_user('admin', 'admin', True)
+            self.backend.create_user(
+                username='admin',
+                password='admin',
+                active=True,
+                superuser=True
+            )

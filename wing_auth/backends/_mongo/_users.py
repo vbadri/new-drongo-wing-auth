@@ -3,6 +3,7 @@ from ._common import MongoCollection
 from datetime import datetime
 from passlib.hash import pbkdf2_sha256
 
+import pymongo
 import uuid
 
 
@@ -16,15 +17,18 @@ class User(MongoCollection):
         super(User, self).init()
 
         self.collection.create_index('username', unique=True)
-        self.collection.create_index('active')
+        self.collection.create_index([
+            ('username', pymongo.HASHED),
+        ])
 
-    def create(self, username, password, active=False):
+    def create(self, username, password, active=False, superuser=False):
         password = HASHER.hash(password)
 
         user_obj = {
             'username': username,
             'password': password,
             'active': active,
+            'superuser': superuser,
             'created_on': datetime.utcnow()
         }
         self.collection.insert_one(user_obj)
@@ -32,7 +36,7 @@ class User(MongoCollection):
     def check_exists(self, username):
         return self.collection.find({'username': username}).count() > 0
 
-    def verify_login(self, username, password):
+    def check_password(self, username, password):
         user_obj = self.collection.find_one(
             {'username': username, 'active': True})
         if user_obj:
