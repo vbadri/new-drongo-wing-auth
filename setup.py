@@ -5,7 +5,6 @@ from setuptools import find_packages, setup
 
 VERSION = '1.0.0'
 REPO_URL = 'https://github.com/drongo-framework/drongo-wing-auth'
-DOWNLOAD_URL = REPO_URL + '/archive/v{version}.tar.gz'.format(version=VERSION)
 
 setup(
     name='drongo-wing-auth',
@@ -26,12 +25,11 @@ setup(
         'Topic :: Internet :: WWW/HTTP',
     ],
     install_requires=[
-        'drongo-wing-database>=1.1.0',
+        'drongo-wing-database>=1.2.0',
         'drongo-wing-session>=1.2.0',
     ],
     packages=find_packages(),
     url=REPO_URL,
-    download_url=DOWNLOAD_URL,
     include_package_data=True,
     zip_safe=False,
 )
