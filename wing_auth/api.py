@@ -1,7 +1,7 @@
 from drongo.helpers import URLHelper
 from drongo.utils import dict2
 
-from .backend.services import UserService
+from .backends.services import UserService
 
 
 url = URLHelper.url
