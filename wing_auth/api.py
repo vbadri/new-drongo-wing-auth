@@ -8,8 +8,9 @@ url = URLHelper.url
 
 
 class AuthAPI(object):
-    def __init__(self, app, base_url, backend, session):
+    def __init__(self, app, module, base_url, backend, session):
         self.app = app
+        self.module = module
         self.base_url = base_url
         self.backend = backend
         self.session = session
@@ -42,7 +43,7 @@ class AuthAPI(object):
         self.backend.user_create(
             username=q['username'][0],
             password=q['password'][0],
-            active=('active' in q)
+            active=self.module.active_on_register
         )
         ctx.response.set_json(dict(
             status='CREATED'

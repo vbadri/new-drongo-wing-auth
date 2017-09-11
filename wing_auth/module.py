@@ -14,6 +14,7 @@ class Auth(Module):
         self.enable_api = config.get('enable_api', False)
         self.enable_views = config.get('enable_views', False)
 
+        self.active_on_register = config.get('active_on_register', False)
         database = self.modules.database
 
         if database.type == Database.MONGO:
@@ -29,6 +30,7 @@ class Auth(Module):
             from .api import AuthAPI
             self.api = AuthAPI(
                 app=self.app,
+                module=self,
                 base_url=self.api_base_url,
                 backend=self.backend,
                 session=self.modules.session
