@@ -2,8 +2,6 @@ from ._activation_code import ActivationCode
 from ._login_attempts import LoginAttempt
 from ._users import User
 
-import uuid
-
 
 class MongoBackend(object):
     def __init__(self, config):

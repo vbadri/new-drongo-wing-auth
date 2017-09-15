@@ -38,16 +38,22 @@ class AuthAPI(object):
         })
 
     @url(pattern='/users', method='POST')
-    def users_create(self, ctx):
+    def create_user(self, ctx):
         q = ctx.request.query
-        self.backend.create_user(
-            username=q['username'][0],
-            password=q['password'][0],
-            active=self.module.active_on_register
-        )
-        ctx.response.set_json(dict(
-            status='CREATED'
-        ))
+        try:
+            self.backend.create_user(
+                username=q['username'][0],
+                password=q['password'][0],
+                active=self.module.active_on_register
+            )
+            ctx.response.set_json(dict(
+                status='CREATED'
+            ))
+        except Exception:
+            ctx.response.set_json(dict(
+                status='ERROR',
+                message='Could not create the user account.',
+            ))
 
     @url(pattern='/users/operations/login', method='POST')
     def users_operations_login(self, ctx):
@@ -68,7 +74,7 @@ class AuthAPI(object):
             ))
         else:
             ctx.response.set_json(dict(
-                status='ERR',
+                status='ERROR',
                 message='Invalid username or password.'
             ))
 

@@ -4,7 +4,7 @@ class UserService(object):
         self._session = session
 
     def login(self, ctx, username, password):
-        res = self._backend.verify_credentials(
+        res = self._backend.check_user_password(
             username=username,
             password=password
         )

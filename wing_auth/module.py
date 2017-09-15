@@ -1,8 +1,6 @@
 from wing_database import Database
 from wing_module import Module
 
-from drongo.utils import dict2
-
 
 class Auth(Module):
     def init(self, config):
@@ -32,6 +30,15 @@ class Auth(Module):
                 app=self.app,
                 module=self,
                 base_url=self.api_base_url,
+                backend=self.backend,
+                session=self.modules.session
+            )
+
+        if self.enable_views:
+            from .views import AuthViews
+            self.views = AuthViews(
+                app=self.app,
+                base_url=self.base_url,
                 backend=self.backend,
                 session=self.modules.session
             )
