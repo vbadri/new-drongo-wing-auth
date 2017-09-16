@@ -40,7 +40,7 @@ class AuthAPI(object):
     @url(pattern='/users', method='POST')
     def users_create(self, ctx):
         q = ctx.request.query
-        self.backend.user_create(
+        self.backend.create_user(
             username=q['username'][0],
             password=q['password'][0],
             active=self.module.active_on_register
