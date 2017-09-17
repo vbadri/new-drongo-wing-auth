@@ -1,9 +1,16 @@
 from wing_database import Database
 from wing_module import Module
 
+import logging
+
 
 class Auth(Module):
+    logger = logging.getLogger('wing_auth')
+
     def init(self, config):
+        self.logger.info('Initializing [auth] module.')
+
+        self.app.context.modules.auth = self
         self.modules = config.modules
 
         self.base_url = config.get('base_url', '/auth')
@@ -13,11 +20,11 @@ class Auth(Module):
         self.enable_views = config.get('enable_views', False)
 
         self.active_on_register = config.get('active_on_register', False)
-        database = self.modules.database
+        database = self.app.context.modules.database[config.database]
 
         if database.type == Database.MONGO:
             from .backends._mongo import MongoBackend
-            self.backend = MongoBackend(config)
+            self.backend = MongoBackend(database)
 
         else:
             raise NotImplementedError
@@ -31,7 +38,7 @@ class Auth(Module):
                 module=self,
                 base_url=self.api_base_url,
                 backend=self.backend,
-                session=self.modules.session
+                session=self.app.context.modules.session
             )
 
         if self.enable_views:
@@ -40,7 +47,7 @@ class Auth(Module):
                 app=self.app,
                 base_url=self.base_url,
                 backend=self.backend,
-                session=self.modules.session
+                session=self.app.context.modules.session
             )
 
         if not self.backend.check_user_exists('admin'):

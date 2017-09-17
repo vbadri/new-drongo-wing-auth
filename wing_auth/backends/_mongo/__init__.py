@@ -4,13 +4,12 @@ from ._users import User
 
 
 class MongoBackend(object):
-    def __init__(self, config):
-        self.config = config
-        self.modules = config.modules
+    def __init__(self, database):
+        self.database = database
 
-        self.users = User(self.config)
-        self.activation_codes = ActivationCode(self.config)
-        self.login_attempts = LoginAttempt(self.config)
+        self.users = User(database)
+        self.activation_codes = ActivationCode(database)
+        self.login_attempts = LoginAttempt(database)
 
     def init(self):
         self.users.init()

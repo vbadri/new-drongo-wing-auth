@@ -1,5 +1,6 @@
 from drongo.helpers import URLHelper
 from drongo.utils import dict2
+from drongo.utils import APIEndpoint
 
 from .backends.services import UserService
 
@@ -7,6 +8,51 @@ import json
 
 
 url = URLHelper.url
+
+
+class UserMe(APIEndpoint):
+    __url__ = '/users/me'
+    __http_methods__ = ['GET']
+
+    def prepare(self):
+        self.session = self.ctx.modules.session
+
+    def call(self):
+        sess = self.session.get(self.ctx)
+        return {
+            'username': sess.user.username,
+            'is_authenticated': sess.user.is_authenticated
+        }
+
+
+class UserCreate(APIEndpoint):
+    __url__ = '/users'
+    __http_methods__ = ['POST']
+
+    def prepare(self):
+        self.query = dict2.from_dict(json.loads(self.ctx.request.env['BODY']))
+        self.modules = self.ctx.modules.auth
+
+    def call(self):
+        self.backend.create_user(
+            username=self.query.username,
+            password=self.query.password,
+            active=self.module.active_on_register
+        )
+        self.ctx.response.set_json(dict(
+            status='CREATED'
+        ))
+
+
+class UserLogin(APIEndpoint):
+    __url__ = '/users/operation/login'
+    __http_methods__ = ['POST']
+
+    def prepare(self):
+        self.query = dict2.from_dict(json.loads(self.ctx.request.env['BODY']))
+
+    def call(self):
+        pass
 
 
 class AuthAPI(object):
@@ -20,6 +66,17 @@ class AuthAPI(object):
         self.create_services()
 
         URLHelper.mount(app, self, base_url)
+        self.init_endpoints()
+
+    def init_endpoints(self):
+        endpoints = [UserMe, UserCreate]
+
+        for endpoint in endpoints:
+            URLHelper.api_endpoint(
+                app=self.app,
+                klass=endpoint,
+                base_url=self.base_url
+            )
 
     def create_services(self):
         self.services = dict2()
@@ -27,35 +84,6 @@ class AuthAPI(object):
             backend=self.backend,
             session=self.session
         )
-
-    @url(pattern='/users/me')
-    def users_me(self, ctx):
-        sess = self.session.get(ctx)
-        ctx.response.set_json({
-            'status': 'OK',
-            'payload': {
-                'username': sess.user.username,
-                'is_authenticated': sess.user.is_authenticated
-            }
-        })
-
-    @url(pattern='/users', method='POST')
-    def create_user(self, ctx):
-        q = json.loads(ctx.request.env['BODY'])
-        try:
-            self.backend.create_user(
-                username=q['username'],
-                password=q['password'],
-                active=self.module.active_on_register
-            )
-            ctx.response.set_json(dict(
-                status='CREATED'
-            ))
-        except Exception:
-            ctx.response.set_json(dict(
-                status='ERROR',
-                message='Could not create the user account.',
-            ))
 
     @url(pattern='/users/operations/login', method='POST')
     def users_operations_login(self, ctx):
