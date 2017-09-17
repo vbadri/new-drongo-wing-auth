@@ -3,6 +3,8 @@ from drongo.utils import dict2
 
 from .backends.services import UserService
 
+import json
+
 
 url = URLHelper.url
 
@@ -39,11 +41,11 @@ class AuthAPI(object):
 
     @url(pattern='/users', method='POST')
     def create_user(self, ctx):
-        q = ctx.request.query
+        q = json.loads(ctx.request.env['BODY'])
         try:
             self.backend.create_user(
-                username=q['username'][0],
-                password=q['password'][0],
+                username=q['username'],
+                password=q['password'],
                 active=self.module.active_on_register
             )
             ctx.response.set_json(dict(
@@ -57,9 +59,9 @@ class AuthAPI(object):
 
     @url(pattern='/users/operations/login', method='POST')
     def users_operations_login(self, ctx):
-        q = ctx.request.query
-        username = q['username'][0]
-        password = q['password'][0]
+        q = json.loads(ctx.request.env['BODY'])
+        username = q['username']
+        password = q['password']
 
         result = self.services.user_service.login(
             ctx=ctx,
