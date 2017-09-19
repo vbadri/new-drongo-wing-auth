@@ -72,7 +72,7 @@ class AuthAPI(object):
         endpoints = [UserMe, UserCreate]
 
         for endpoint in endpoints:
-            URLHelper.api_endpoint(
+            URLHelper.endpoint(
                 app=self.app,
                 klass=endpoint,
                 base_url=self.base_url
