@@ -11,7 +11,6 @@ class Auth(Module):
         self.logger.info('Initializing [auth] module.')
 
         self.app.context.modules.auth = self
-        self.modules = config.modules
 
         self.base_url = config.get('base_url', '/auth')
         self.api_base_url = config.get('api_base_url', '/api/auth')
@@ -20,25 +19,23 @@ class Auth(Module):
         self.enable_views = config.get('enable_views', False)
 
         self.active_on_register = config.get('active_on_register', False)
-        database = self.app.context.modules.database[config.database]
+        self.database = self.app.context.modules.database[config.database]
 
-        if database.type == Database.MONGO:
-            from .backends._mongo import MongoBackend
-            self.backend = MongoBackend(database)
+        if self.database.type == Database.MONGO:
+            from .backends._mongo import services
+            self.services = services
 
         else:
             raise NotImplementedError
 
-        self.backend.init()
+        services.UserServiceBase.init(module=self)
 
         if self.enable_api:
             from .api import AuthAPI
             self.api = AuthAPI(
                 app=self.app,
                 module=self,
-                base_url=self.api_base_url,
-                backend=self.backend,
-                session=self.app.context.modules.session
+                base_url=self.api_base_url
             )
 
         if self.enable_views:
@@ -48,12 +45,4 @@ class Auth(Module):
                 base_url=self.base_url,
                 backend=self.backend,
                 session=self.app.context.modules.session
-            )
-
-        if not self.backend.check_user_exists('admin'):
-            self.backend.create_user(
-                username='admin',
-                password='admin',
-                active=True,
-                superuser=True
             )
