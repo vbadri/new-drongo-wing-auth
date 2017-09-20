@@ -42,7 +42,6 @@ class Auth(Module):
             from .views import AuthViews
             self.views = AuthViews(
                 app=self.app,
-                base_url=self.base_url,
-                backend=self.backend,
-                session=self.app.context.modules.session
+                module=self,
+                base_url=self.base_url
             )
