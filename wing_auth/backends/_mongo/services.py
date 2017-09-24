@@ -23,6 +23,9 @@ class UserCreateService(UserServiceBase):
         self.superuser = superuser
 
     def call(self, ctx=None):
+        if User.objects.find_one(username=self.username) is not None:
+            raise Exception('User already exists.')
+
         return User.create(
             username=self.username,
             password=self.password,

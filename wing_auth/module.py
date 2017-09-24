@@ -21,6 +21,9 @@ class Auth(Module):
         self.active_on_register = config.get('active_on_register', False)
         self.database = self.app.context.modules.database[config.database]
 
+        self.admin_user = config.get('admin_user', None)
+        self.admin_password = config.get('admin_password', 'admin')
+
         if self.database.type == Database.MONGO:
             from .backends._mongo import services
             self.services = services
@@ -29,6 +32,17 @@ class Auth(Module):
             raise NotImplementedError
 
         services.UserServiceBase.init(module=self)
+
+        if self.admin_user:
+            try:
+                services.UserCreateService(
+                    username=self.admin_user,
+                    password=self.admin_password,
+                    active=True,
+                    superuser=True
+                ).call()
+            except Exception:
+                pass
 
         if self.enable_api:
             from .api import AuthAPI
