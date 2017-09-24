@@ -18,7 +18,9 @@ class AuthViews(object):
     @url(pattern='/login')
     @template('auth/login.html.j2')
     def login_view(self, ctx):
-        pass
+        q = ctx.request.query
+        if 'next' in q:
+            ctx.session.next = q['next'][0]
 
     @url(pattern='/login', method='POST')
     def login_do(self, ctx):
@@ -34,7 +36,18 @@ class AuthViews(object):
         result = svc.check_credentials()
         if result:
             svc.call(ctx)
-            _next = q.get('next', ['/'])[0]
+            _next = None
+            print(ctx.session)
+
+            if 'next' in q:
+                _next = q['next'][0]
+
+            if _next is None and 'next' in ctx.session:
+                _next = ctx.session.next
+
+            if _next is None:
+                _next = '/'
+
             ctx.response.set_redirect(_next)
         else:
             ctx.response.set_redirect('/auth/login')
