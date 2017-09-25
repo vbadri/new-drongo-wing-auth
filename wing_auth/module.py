@@ -5,6 +5,22 @@ import logging
 
 
 class Auth(Module):
+    """Drongo module for authentication and authorization"""
+
+    __default_config__ = {
+        'base_url': '/auth',
+        'api_base_url': '/api/auth',
+
+        'create_admin_user': True,
+        'admin_user': 'admin',
+        'admin_password': 'admin',
+
+        'active_on_register': False,
+
+        'enable_api': False,
+        'enable_views': False,
+    }
+
     logger = logging.getLogger('wing_auth')
 
     def init(self, config):
@@ -12,17 +28,7 @@ class Auth(Module):
 
         self.app.context.modules.auth = self
 
-        self.base_url = config.get('base_url', '/auth')
-        self.api_base_url = config.get('api_base_url', '/api/auth')
-
-        self.enable_api = config.get('enable_api', False)
-        self.enable_views = config.get('enable_views', False)
-
-        self.active_on_register = config.get('active_on_register', False)
         self.database = self.app.context.modules.database[config.database]
-
-        self.admin_user = config.get('admin_user', None)
-        self.admin_password = config.get('admin_password', 'admin')
 
         if self.database.type == Database.MONGO:
             from .backends._mongo import services
@@ -33,7 +39,7 @@ class Auth(Module):
 
         services.UserServiceBase.init(module=self)
 
-        if self.admin_user:
+        if config.create_admin_user:
             try:
                 services.UserCreateService(
                     username=self.admin_user,
@@ -44,18 +50,27 @@ class Auth(Module):
             except Exception:
                 pass
 
-        if self.enable_api:
-            from .api import AuthAPI
-            self.api = AuthAPI(
-                app=self.app,
-                module=self,
-                base_url=self.api_base_url
-            )
+        self.init_api()
+        self.init_views()
 
-        if self.enable_views:
-            from .views import AuthViews
-            self.views = AuthViews(
-                app=self.app,
-                module=self,
-                base_url=self.base_url
-            )
+    def init_api(self):
+        if not self.config.enable_api:
+            return
+
+        from .api import AuthAPI
+        self.api = AuthAPI(
+            app=self.app,
+            module=self,
+            base_url=self.config.api_base_url
+        )
+
+    def init_views(self):
+        if not self.config.enable_views:
+            return
+
+        from .views import AuthViews
+        self.views = AuthViews(
+            app=self.app,
+            module=self,
+            base_url=self.config.base_url
+        )

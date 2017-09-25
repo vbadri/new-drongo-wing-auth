@@ -13,19 +13,32 @@ class UserMe(APIEndpoint):
     __http_methods__ = ['GET']
 
     def init(self):
-        self.session = self.ctx.modules.session
+        self.token = self.ctx.request.env.get('HTTP_AUTHORIZATION')
+        self.user_token_svc = self.ctx.modules.auth.services.UserForTokenService(
+            token=self.token
+        )
+
+    def validate(self):
+        if self.token is None:
+            self.valid = False
+            self.errors.setdefault('_', []).append(
+                'No auth token specified.'
+            )
+            return
+
+        self.user = self.user_token_svc.call()
+        if self.user is None:
+            self.valid = False
+            self.errors.setdefault('_', []).append(
+                'Invalid or unauthorized token.'
+            )
 
     def call(self):
-        sess = self.session.get(self.ctx)
-        if 'user' in sess:
-            return {
-                'username': sess.user.username,
-                'is_authenticated': sess.user.is_authenticated
-            }
-        else:
-            return {
-                'is_authenticated': False
-            }
+        return {
+            'username': self.user.username,
+            'is_authenticated': True,
+            'is_superuser': self.user.superuser
+        }
 
 
 class UserCreate(APIEndpoint):
@@ -67,6 +80,11 @@ class UserLogin(APIEndpoint):
         self.query = dict2.from_dict(json.loads(self.ctx.request.env['BODY']))
         self.auth = self.ctx.modules.auth
 
+        self.login_svc = self.auth.services.UserLoginService(
+            username=self.query.username,
+            password=self.query.password
+        )
+
     def validate(self):
         if 'username' not in self.query:
             self.errors.setdefault('username', []).append(
@@ -83,10 +101,7 @@ class UserLogin(APIEndpoint):
         if not self.valid:
             return
 
-        if not self.auth.services.UserLoginService(
-            username=self.query.username,
-            password=self.query.password
-        ).check_credentials():
+        if not self.login_svc.check_credentials():
             self.valid = False
             self.errors.setdefault('_', []).append(
                 'Invalid username or password.'
@@ -95,10 +110,10 @@ class UserLogin(APIEndpoint):
             self.auth.services.UserLogoutService().call(self.ctx)
 
     def call(self):
-        self.auth.services.UserLoginService(
-            username=self.query.username,
-            password=self.query.password
-        ).call(self.ctx)
+        token = self.login_svc.create_token()
+        return {
+            'token': token
+        }
 
 
 class UserLogout(APIEndpoint):
@@ -107,9 +122,11 @@ class UserLogout(APIEndpoint):
 
     def init(self):
         self.auth = self.ctx.modules.auth
+        self.token = self.ctx.request.env.get('HTTP_AUTHORIZATION')
 
     def call(self):
-        self.auth.services.UserLogoutService().call(self.ctx)
+        self.auth.services.UserLogoutService().expire_token(self.token)
+        return 'Bye!'
 
 
 class AuthAPI(object):
