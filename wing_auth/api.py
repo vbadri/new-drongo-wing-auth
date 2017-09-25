@@ -14,7 +14,8 @@ class UserMe(APIEndpoint):
 
     def init(self):
         self.token = self.ctx.request.env.get('HTTP_AUTHORIZATION')
-        self.user_token_svc = self.ctx.modules.auth.services.UserForTokenService(
+        self.auth = self.ctx.modules.auth
+        self.user_token_svc = self.auth.services.UserForTokenService(
             token=self.token
         )
 
