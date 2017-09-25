@@ -26,5 +26,5 @@ class UserToken(Document):
     }
 
     def refresh(self):
-        self.expires = datetime.utcnow() + timedelta(minutes=5)
+        self.expires = datetime.utcnow() + timedelta(minutes=60)
         self.save()
