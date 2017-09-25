@@ -8,4 +8,3 @@ class APIMiddleware(object):
         auth = ctx.modules.auth
         user_token_svc = auth.services.UserForTokenService(token=token)
         ctx.user = user_token_svc.call()
-        print(ctx.user)
