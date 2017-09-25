@@ -105,7 +105,8 @@ class UserLoginService(UserServiceBase):
 class UserLogoutService(UserServiceBase):
     def expire_token(self, token):
         token = UserToken.objects.find_one(token=token)
-        token.delete()
+        if token is not None:
+            token.delete()
 
     def call(self, ctx):
         sess = ctx.modules.session.get(ctx)
