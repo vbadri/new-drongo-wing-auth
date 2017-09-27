@@ -42,12 +42,13 @@ class Auth(Module):
         if config.create_admin_user:
             try:
                 services.UserCreateService(
-                    username=self.admin_user,
-                    password=self.admin_password,
+                    username=config.admin_user,
+                    password=config.admin_password,
                     active=True,
                     superuser=True
                 ).call()
-            except Exception:
+            except Exception as e:
+                print(e)
                 pass
 
         self.init_api()
