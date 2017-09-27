@@ -67,7 +67,7 @@ class UserCreate(APIEndpoint):
         self.auth.services.UserCreateService(
             username=self.query.username,
             password=self.query.password,
-            active=self.auth.active_on_register
+            active=self.auth.config.active_on_register
         ).call()
 
         return None
