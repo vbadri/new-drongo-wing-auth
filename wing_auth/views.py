@@ -34,8 +34,12 @@ class AuthViews(object):
         )
 
         result = svc.check_credentials()
+        token = svc.create_token()
+
         if result:
-            svc.call(ctx)
+            if self.module.config.token_in_session:
+                svc.authenticate_session(ctx, token)
+
             _next = None
 
             if 'next' in q:
