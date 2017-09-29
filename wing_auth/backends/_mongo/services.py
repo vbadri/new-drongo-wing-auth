@@ -1,9 +1,10 @@
-from .models import User, UserToken
+import uuid
 
 from datetime import datetime
+
 from passlib.hash import pbkdf2_sha256
 
-import uuid
+from .models import User, UserToken
 
 
 HASHER = pbkdf2_sha256.using(rounds=10000)
@@ -13,6 +14,7 @@ class UserServiceBase(object):
     @classmethod
     def init(cls, module):
         cls.module = module
+
         User.set_collection(
             module.database.instance.get_collection('auth_users')
         )
@@ -36,7 +38,7 @@ class UserForTokenService(UserServiceBase):
             token.delete()
             return None
 
-        token.refresh()
+        token.refresh(span=self.module.config.token_age)
         return token.user
 
 
@@ -78,28 +80,12 @@ class UserLoginService(UserServiceBase):
             user=user,
             token=uuid.uuid4().hex
         )
-        token.refresh()
+        token.refresh(span=self.module.config.token_age)
         return token.token
 
-    def authenticate_session(self, ctx):
+    def authenticate_session(self, ctx, token):
         sess = ctx.modules.session.get(ctx)
-        user = User.objects.find_one(username=self.username, active=True)
-
-        sess.user = {
-            'is_authenticated': True,
-            'is_superuser': user.superuser,
-            'username': user.username
-        }
-
-    def call(self, ctx):
-        sess = ctx.modules.session.get(ctx)
-        user = User.objects.find_one(username=self.username, active=True)
-
-        sess.user = {
-            'is_authenticated': True,
-            'is_superuser': user.superuser,
-            'username': user.username
-        }
+        sess.auth.token = token
 
 
 class UserLogoutService(UserServiceBase):

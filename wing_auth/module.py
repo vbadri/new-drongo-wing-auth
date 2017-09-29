@@ -1,7 +1,8 @@
-from wing_database import Database
-from wing_module import Module
-
 import logging
+
+from wing_database import Database
+
+from wing_module import Module
 
 
 class Auth(Module):
@@ -19,6 +20,9 @@ class Auth(Module):
 
         'enable_api': False,
         'enable_views': False,
+
+        'token_age': 7 * 24 * 60,  # A week (in minutes)
+        'token_in_session': False,
     }
 
     logger = logging.getLogger('wing_auth')

@@ -1,6 +1,6 @@
-from wing_database.utils.mongo_orm.document import Document
-
 from datetime import datetime, timedelta
+
+from wing_database.utils.mongo_orm.document import Document
 
 
 class User(Document):
@@ -25,6 +25,6 @@ class UserToken(Document):
         'user': ('user_id', User)
     }
 
-    def refresh(self):
-        self.expires = datetime.utcnow() + timedelta(minutes=60)
+    def refresh(self, span):
+        self.expires = datetime.utcnow() + timedelta(minutes=span)
         self.save()

@@ -1,8 +1,9 @@
-from drongo.helpers import URLHelper
-from drongo.utils import dict2
-from drongo.utils import APIEndpoint
-
 import json
+
+from drongo.helpers import URLHelper
+from drongo.status_codes import HttpStatusCodes
+from drongo.utils import APIEndpoint
+from drongo.utils import dict2
 
 
 url = URLHelper.url
@@ -13,7 +14,7 @@ class UserMe(APIEndpoint):
     __http_methods__ = ['GET']
 
     def init(self):
-        self.token = self.ctx.request.env.get('HTTP_AUTHORIZATION')
+        self.token = self.ctx.auth.get('token')
         self.auth = self.ctx.modules.auth
         self.user_token_svc = self.auth.services.UserForTokenService(
             token=self.token
@@ -22,9 +23,7 @@ class UserMe(APIEndpoint):
     def validate(self):
         if self.token is None:
             self.valid = False
-            self.errors.setdefault('_', []).append(
-                'No auth token specified.'
-            )
+            self.error(message='No auth token specified.')
             return
 
         self.user = self.user_token_svc.call()
@@ -47,19 +46,21 @@ class UserCreate(APIEndpoint):
     __http_methods__ = ['POST']
 
     def init(self):
-        self.query = dict2.from_dict(json.loads(self.ctx.request.env['BODY']))
+        self.query = self.ctx.request.json
         self.auth = self.ctx.modules.auth
 
     def validate(self):
         if 'username' not in self.query:
-            self.errors.setdefault('username', []).append(
-                'Username is required.'
+            self.error(
+                group='username',
+                message='Username is required.'
             )
             self.valid = False
 
         if 'password' not in self.query:
-            self.errors.setdefault('password', []).append(
-                'Password is required.'
+            self.error(
+                group='password',
+                message='Password is required.'
             )
             self.valid = False
 
@@ -88,14 +89,16 @@ class UserLogin(APIEndpoint):
 
     def validate(self):
         if 'username' not in self.query:
-            self.errors.setdefault('username', []).append(
-                'Username is required.'
+            self.error(
+                group='username',
+                message='Username is required.'
             )
             self.valid = False
 
         if 'password' not in self.query:
-            self.errors.setdefault('password', []).append(
-                'Password is required.'
+            self.error(
+                group='password',
+                message='Password is required.'
             )
             self.valid = False
 
@@ -104,14 +107,17 @@ class UserLogin(APIEndpoint):
 
         if not self.login_svc.check_credentials():
             self.valid = False
-            self.errors.setdefault('_', []).append(
-                'Invalid username or password.'
-            )
-
+            self.error(message='Invalid username or password.')
             self.auth.services.UserLogoutService().call(self.ctx)
 
     def call(self):
         token = self.login_svc.create_token()
+
+        if self.auth.config.token_in_session:
+            self.login_svc.authenticate_session(self.ctx, token)
+
+        self.status(HttpStatusCodes.HTTP_202)
+
         return {
             'token': token
         }
@@ -123,10 +129,11 @@ class UserLogout(APIEndpoint):
 
     def init(self):
         self.auth = self.ctx.modules.auth
-        self.token = self.ctx.request.env.get('HTTP_AUTHORIZATION')
+        self.token = self.ctx.auth.get('token')
 
     def call(self):
         self.auth.services.UserLogoutService().expire_token(self.token)
+        self.status(HttpStatusCodes.HTTP_202)
         return 'Bye!'
 
 

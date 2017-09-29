@@ -37,7 +37,6 @@ class AuthViews(object):
         if result:
             svc.call(ctx)
             _next = None
-            print(ctx.session)
 
             if 'next' in q:
                 _next = q['next'][0]
