@@ -1,4 +1,5 @@
 import json
+import re
 
 from drongo.helpers import URLHelper
 from drongo.status_codes import HttpStatusCodes
@@ -7,6 +8,49 @@ from drongo.utils import dict2
 
 
 url = URLHelper.url
+
+
+class UsernameValidator(object):
+    def __init__(self, api, username):
+        self.api = api
+        self.username = username
+
+    def validate(self):
+        if self.username is None or self.username == '':
+            self.api.error(
+                'username',
+                'Username cannot be empty.'
+            )
+            return False
+
+        if not re.match('[a-zA-Z][a-zA-Z0-9_]*', self.username):
+            self.api.error(
+                'username',
+                'Only alpha number characters and underscore is allowed.'
+            )
+        return True
+
+
+class PasswordValidator(object):
+    def __init__(self, api, password):
+        self.api = api
+        self.password = password
+
+    def validate(self):
+        if self.password is None or self.password == '':
+            self.api.error(
+                'password',
+                'Password cannot be empty.'
+            )
+            return False
+
+        if len(self.password) < 5:
+            self.api.error(
+                'password',
+                'Password must be at least 5 characters.'
+            )
+            return False
+        return True
 
 
 class UserMe(APIEndpoint):
@@ -49,25 +93,21 @@ class UserCreate(APIEndpoint):
         self.query = self.ctx.request.json
         self.auth = self.ctx.modules.auth
         self.create_user_svc = self.auth.services.UserCreateService(
-            username=self.query.username,
-            password=self.query.password,
+            username=self.query.get('username'),
+            password=self.query.get('password'),
             active=self.auth.config.active_on_register
         )
 
     def validate(self):
-        if 'username' not in self.query:
-            self.error(
-                group='username',
-                message='Username is required.'
-            )
-            self.valid = False
+        self.valid = (
+            self.valid and
+            UsernameValidator(self, self.query.get('username')).validate()
+        )
 
-        if 'password' not in self.query:
-            self.error(
-                group='password',
-                message='Password is required.'
-            )
-            self.valid = False
+        self.valid = (
+            self.valid and
+            PasswordValidator(self, self.query.get('password')).validate()
+        )
 
         if self.create_user_svc.check_exists():
             self.error(
@@ -95,19 +135,15 @@ class UserLogin(APIEndpoint):
         )
 
     def validate(self):
-        if 'username' not in self.query:
-            self.error(
-                group='username',
-                message='Username is required.'
-            )
-            self.valid = False
+        self.valid = (
+            self.valid and
+            UsernameValidator(self, self.query.get('username')).validate()
+        )
 
-        if 'password' not in self.query:
-            self.error(
-                group='password',
-                message='Password is required.'
-            )
-            self.valid = False
+        self.valid = (
+            self.valid and
+            PasswordValidator(self, self.query.get('password')).validate()
+        )
 
         if not self.valid:
             return
