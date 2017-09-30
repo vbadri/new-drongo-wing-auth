@@ -48,6 +48,11 @@ class UserCreate(APIEndpoint):
     def init(self):
         self.query = self.ctx.request.json
         self.auth = self.ctx.modules.auth
+        self.create_user_svc = self.auth.services.UserCreateService(
+            username=self.query.username,
+            password=self.query.password,
+            active=self.auth.config.active_on_register
+        )
 
     def validate(self):
         if 'username' not in self.query:
@@ -64,14 +69,16 @@ class UserCreate(APIEndpoint):
             )
             self.valid = False
 
-    def call(self):
-        self.auth.services.UserCreateService(
-            username=self.query.username,
-            password=self.query.password,
-            active=self.auth.config.active_on_register
-        ).call()
+        if self.create_user_svc.check_exists():
+            self.error(
+                group='username',
+                message='Username already exists.'
+            )
+            self.valid = False
 
-        return None
+    def call(self):
+        self.create_user_svc.call()
+        return 'OK'
 
 
 class UserLogin(APIEndpoint):

@@ -49,8 +49,11 @@ class UserCreateService(UserServiceBase):
         self.active = active
         self.superuser = superuser
 
+    def check_exists(self):
+        return User.objects.find_one(username=self.username) is not None
+
     def call(self, ctx=None):
-        if User.objects.find_one(username=self.username) is not None:
+        if self.check_exists():
             raise Exception('User already exists.')
 
         return User.create(
