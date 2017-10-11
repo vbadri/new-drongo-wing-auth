@@ -59,7 +59,8 @@ class AuthViews(object):
     def logout_do(self, ctx):
         q = ctx.request.query
         svc = self.module.services.UserLogoutService()
-        svc.call(ctx)
+        token = ctx.auth.get('token')
+        svc.expire_token(token)
 
         _next = q.get('next', ['/'])[0]
         ctx.response.set_redirect(_next)
