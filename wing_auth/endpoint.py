@@ -10,9 +10,12 @@ class AuthAPIEndpoint(Endpoint):
     __check__ = {}
     __filter__ = {}
 
-    def do_rule(self, rtype, context):
+    def do_rule(self, rtype, context, element=None):
         if hasattr(self, context):
-            context = getattr(self, context)()
+            if element is None:
+                context = getattr(self, context)()
+            else:
+                context = getattr(self, context)(element)
         else:
             context = {}
 
@@ -59,7 +62,11 @@ class AuthAPIEndpoint(Endpoint):
             return
 
         # Filter stage
-        # TODO: Implement filter stage
+        if isinstance(result, list):
+            result = list(filter(
+                lambda element: self.execute_filter(self.__filter__, element),
+                result
+            ))
 
         self.ctx.response.set_json({
             'status': 'OK',
@@ -94,6 +101,29 @@ class AuthAPIEndpoint(Endpoint):
             rtype = expr.get('type')
             ctx = expr.get('context')
             return self.do_rule(rtype, ctx)
+
+        else:
+            return True
+
+    def execute_filter(self, expr, element):
+        if '$and' in expr:
+            for item in expr['$and']:
+                res = self.execute_filter(item, element)
+                if not res:
+                    return False
+            return True
+
+        elif '$or' in expr:
+            for item in expr['$or']:
+                res = self.execute_filter(item, element)
+                if res:
+                    return True
+            return False
+
+        elif 'type' in expr:
+            rtype = expr.get('type')
+            ctx = expr.get('context')
+            return self.do_rule(rtype, ctx, element)
 
         else:
             return True
