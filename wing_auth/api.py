@@ -124,6 +124,46 @@ class UserCreate(APIEndpoint):
         return 'OK'
 
 
+class UserChangePassword(APIEndpoint):
+    __url__ = '/users/operations/change-password'
+    __http_methods__ = ['POST']
+
+    def init(self):
+        self.query = self.ctx.request.json
+        self.auth = self.ctx.modules.auth
+
+        self.login_svc = self.auth.services.UserLoginService(
+            username=self.query.username,
+            password=self.query.password
+        )
+
+        self.change_pwd_svc = self.auth.services.UserChangePasswordService(
+            username=self.query.username,
+            password=self.query.new_password
+        )
+
+    def validate(self):
+        self.valid = (
+            self.valid and
+            UsernameValidator(self, self.query.get('username')).validate()
+        )
+
+        self.valid = (
+            self.valid and
+            PasswordValidator(self, self.query.get('password')).validate()
+        )
+
+        if not self.login_svc.check_credentials():
+            self.error(
+                group='_',
+                message='Invalid username or password.'
+            )
+
+    def call(self):
+        self.change_pwd_svc.call()
+        return 'OK'
+
+
 class UserLogin(APIEndpoint):
     __url__ = '/users/operations/login'
     __http_methods__ = ['POST']
@@ -192,7 +232,13 @@ class AuthAPI(object):
         self.init_endpoints()
 
     def init_endpoints(self):
-        endpoints = [UserMe, UserCreate, UserLogin, UserLogout]
+        endpoints = [
+            UserMe,
+            UserCreate,
+            UserLogin,
+            UserLogout,
+            UserChangePassword
+        ]
 
         for endpoint in endpoints:
             URLHelper.endpoint(

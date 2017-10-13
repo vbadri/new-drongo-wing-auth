@@ -65,6 +65,17 @@ class UserCreateService(UserServiceBase):
         )
 
 
+class UserChangePasswordService(UserServiceBase):
+    def __init__(self, username, password):
+        self.username = username
+        self.password = HASHER.hash(password)
+
+    def call(self):
+        user = User.objects.find_one(username=self.username, active=True)
+        user.password = self.password
+        user.save()
+
+
 class UserLoginService(UserServiceBase):
     def __init__(self, username, password):
         self.username = username
