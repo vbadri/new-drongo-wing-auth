@@ -223,6 +223,38 @@ class UserLogout(APIEndpoint):
         return 'Bye!'
 
 
+class UserList(APIEndpoint):
+    __url__ = '/users'
+    __http_methods__ = 'GET'
+
+    def init(self):
+        self.auth = self.ctx.modules.auth
+        self.user = self.ctx.auth.user
+
+    def validate(self):
+        if not self.user or not self.user.superuser:
+            self.error(
+                group='_',
+                message='Only superuser is allowed to list the users.'
+            )
+
+    def call(self):
+        return list(map(
+            lambda item: item.json(exclude=['password', '_id', 'created_on']),
+            self.auth.services.UserListService().call(self.ctx)
+        ))
+
+
+AVAILABLE_API = [
+    UserMe,
+    UserCreate,
+    UserLogin,
+    UserLogout,
+    UserChangePassword,
+    UserList
+]
+
+
 class AuthAPI(object):
     def __init__(self, app, module, base_url):
         self.app = app
@@ -232,15 +264,7 @@ class AuthAPI(object):
         self.init_endpoints()
 
     def init_endpoints(self):
-        endpoints = [
-            UserMe,
-            UserCreate,
-            UserLogin,
-            UserLogout,
-            UserChangePassword
-        ]
-
-        for endpoint in endpoints:
+        for endpoint in AVAILABLE_API:
             URLHelper.endpoint(
                 app=self.app,
                 klass=endpoint,

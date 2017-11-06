@@ -115,3 +115,8 @@ class UserLogoutService(UserServiceBase):
             'is_superuser': False,
             'username': None
         }
+
+
+class UserListService(UserServiceBase):
+    def call(self, ctx):
+        return User.objects.find()
