@@ -110,11 +110,7 @@ class UserLogoutService(UserServiceBase):
 
     def call(self, ctx):
         sess = ctx.modules.session.get(ctx)
-        sess.user = {
-            'is_authenticated': False,
-            'is_superuser': False,
-            'username': None
-        }
+        sess.auth.toke = None
 
 
 class UserListService(UserServiceBase):
