@@ -1,10 +1,11 @@
 import json
 import re
 
-from drongo.helpers import URLHelper
 from drongo.status_codes import HttpStatusCodes
-from drongo.utils import APIEndpoint
 from drongo.utils import dict2
+
+from drongo_utils.endpoint import APIEndpoint
+from drongo_utils.helpers import URLHelper
 
 
 url = URLHelper.url

@@ -3,7 +3,7 @@ import traceback
 
 from drongo.status_codes import HttpStatusCodes
 
-from drongo.utils.endpoint import Endpoint
+from drongo_utils.endpoint import Endpoint
 
 
 class AuthAPIEndpoint(Endpoint):

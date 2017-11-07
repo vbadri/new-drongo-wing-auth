@@ -1,4 +1,4 @@
-from drongo.helpers import URLHelper
+from drongo_utils.helpers import URLHelper
 
 from wing_jinja2 import Jinja2
 
