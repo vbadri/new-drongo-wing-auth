@@ -150,8 +150,19 @@ class UserChangePassword(APIEndpoint):
 
         self.valid = (
             self.valid and
-            PasswordValidator(self, self.query.get('password')).validate()
+            PasswordValidator(self, self.query.get('new_password')).validate()
         )
+
+        # Let superuser change password without old password
+        if 'user' in self.ctx.auth and self.ctx.auth.user.superuser:
+            return
+
+        if 'password' not in self.query or not self.query.password:
+            self.error(
+                group='password',
+                message='Current password is required.'
+            )
+            return
 
         if not self.login_svc.check_credentials():
             self.error(
