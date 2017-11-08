@@ -1,4 +1,3 @@
-import json
 import re
 
 from drongo.status_codes import HttpStatusCodes
@@ -170,7 +169,7 @@ class UserLogin(APIEndpoint):
     __http_methods__ = ['POST']
 
     def init(self):
-        self.query = dict2.from_dict(json.loads(self.ctx.request.env['BODY']))
+        self.query = dict2.from_dict(self.ctx.request.json)
         self.auth = self.ctx.modules.auth
 
         self.login_svc = self.auth.services.UserLoginService(
