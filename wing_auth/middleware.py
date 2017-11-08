@@ -3,7 +3,8 @@ class AuthMiddleware(object):
         token = None
         if 'HTTP_AUTHORIZATION' in ctx.request.env:
             token = ctx.request.env['HTTP_AUTHORIZATION']
-        else:
+
+        elif 'session' in ctx.modules:
             sess = ctx.modules.session.get(ctx)
             token = sess.auth.get('token')
 
