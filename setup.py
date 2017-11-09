@@ -26,7 +26,6 @@ setup(
     ],
     install_requires=[
         'drongo-wing-database>=1.2.0',
-        'drongo-wing-session>=1.2.0',
     ],
     packages=find_packages(),
     url=REPO_URL,
