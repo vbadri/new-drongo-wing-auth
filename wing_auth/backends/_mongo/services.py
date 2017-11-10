@@ -4,6 +4,8 @@ from datetime import datetime
 
 from passlib.hash import pbkdf2_sha256
 
+import pymongo
+
 from .models import User, UserToken
 
 
@@ -18,10 +20,13 @@ class UserServiceBase(object):
         User.set_collection(
             module.database.instance.get_collection('auth_users')
         )
+        User.__collection__.create_index([('username', pymongo.HASHED)])
 
         UserToken.set_collection(
             module.database.instance.get_collection('auth_user_tokens')
         )
+        UserToken.__collection__.create_index([('token', pymongo.HASHED)])
+        UserToken.__collection__.create_index([('expires', pymongo.ASCENDING)])
 
 
 class UserForTokenService(UserServiceBase):
