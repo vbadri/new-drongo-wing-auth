@@ -5,8 +5,11 @@ class AuthMiddleware(object):
             token = ctx.request.env['HTTP_AUTHORIZATION']
 
         elif 'session' in ctx.modules:
-            sess = ctx.modules.session.get(ctx)
-            token = sess.auth.get('token')
+            try:
+                sess = ctx.modules.session.get(ctx)
+                token = sess.auth.get('token')
+            except Exception:
+                pass
 
         if token is not None:
             self.load_user_from_token(ctx, token)
