@@ -114,8 +114,9 @@ class UserLogoutService(UserServiceBase):
             token.delete()
 
     def call(self, ctx):
-        sess = ctx.modules.session.get(ctx)
-        sess.auth.toke = None
+        if 'session' in ctx.modules:
+            sess = ctx.modules.session.get(ctx)
+            sess.auth.token = None
 
 
 class UserListService(UserServiceBase):

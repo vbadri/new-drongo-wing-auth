@@ -129,7 +129,7 @@ class UserChangePassword(APIEndpoint):
     __http_methods__ = ['POST']
 
     def init(self):
-        self.query = self.ctx.request.json
+        self.query = dict2.from_dict(self.ctx.request.json)
         self.auth = self.ctx.modules.auth
 
         self.login_svc = self.auth.services.UserLoginService(
