@@ -4,8 +4,9 @@ import traceback
 from drongo.status_codes import HttpStatusCodes
 
 from drongo_utils.endpoint import Endpoint
+import logging
 
-
+_logger = logging.getLogger('drongo.auth')
 class AuthAPIEndpoint(Endpoint):
     __check__ = {}
     __filter__ = {}
@@ -51,7 +52,6 @@ class AuthAPIEndpoint(Endpoint):
         except Exception:
             exc_type, exc_value, exc_traceback = sys.exc_info()
 
-            _logger = logging.getLogger('drongo')
             _logger.error('\n'.join(traceback.format_exception(
                 exc_type, exc_value, exc_traceback)))
 
