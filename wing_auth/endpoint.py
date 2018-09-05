@@ -51,7 +51,8 @@ class AuthAPIEndpoint(Endpoint):
         except Exception:
             exc_type, exc_value, exc_traceback = sys.exc_info()
 
-            self._logger.error('\n'.join(traceback.format_exception(
+            _logger = logging.getLogger('drongo')
+            _logger.error('\n'.join(traceback.format_exception(
                 exc_type, exc_value, exc_traceback)))
 
             self.error(message='Internal server error.')
