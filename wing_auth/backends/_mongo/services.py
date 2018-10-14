@@ -11,19 +11,18 @@ from .models import User, UserToken
 
 HASHER = pbkdf2_sha256.using(rounds=10000)
 
-
 class UserServiceBase(object):
     @classmethod
-    def init(cls, module):
+    def init(cls, module, users_collection='auth_users', tokens_collection='auth_user_tokens'):
         cls.module = module
 
         User.set_collection(
-            module.database.instance.get_collection('auth_users')
+            module.database.instance.get_collection(users_collection)
         )
         User.__collection__.create_index([('username', pymongo.HASHED)])
 
         UserToken.set_collection(
-            module.database.instance.get_collection('auth_user_tokens')
+            module.database.instance.get_collection(tokens_collection)
         )
         UserToken.__collection__.create_index([('token', pymongo.HASHED)])
         UserToken.__collection__.create_index([('expires', pymongo.ASCENDING)])

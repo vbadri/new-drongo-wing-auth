@@ -12,6 +12,9 @@ class User(Document):
         'superuser',
         'created_on'
     ]
+    __autos__ = {
+       'last_updated' : datetime.utcnow 
+    }
 
 
 class UserToken(Document):
@@ -21,6 +24,9 @@ class UserToken(Document):
         'token',
         'expires'
     ]
+    __autos__ = {
+       'last_updated' : datetime.utcnow 
+    }
     __resolve__ = {
         'user': ('user_id', User)
     }

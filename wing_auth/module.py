@@ -9,8 +9,8 @@ class Auth(Module):
     """Drongo module for authentication and authorization"""
 
     __default_config__ = {
-        'base_url': '/auth',
-        'api_base_url': '/api/auth',
+        'base_url': '/auth/',
+        'api_base_url': '/api/auth/users',
 
         'create_admin_user': True,
         'admin_user': 'admin',

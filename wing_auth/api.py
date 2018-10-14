@@ -57,7 +57,7 @@ class PasswordValidator(object):
 
 
 class UserMe(APIEndpoint):
-    __url__ = '/users/me'
+    __url__ = '/me'
     __http_methods__ = ['GET']
 
     def init(self):
@@ -89,7 +89,7 @@ class UserMe(APIEndpoint):
 
 
 class UserCreate(APIEndpoint):
-    __url__ = '/users'
+    __url__ = '/'
     __http_methods__ = ['POST']
 
     def init(self):
@@ -125,7 +125,7 @@ class UserCreate(APIEndpoint):
 
 
 class UserChangePassword(APIEndpoint):
-    __url__ = '/users/operations/change-password'
+    __url__ = '/operations/change-password'
     __http_methods__ = ['POST']
 
     def init(self):
@@ -176,7 +176,7 @@ class UserChangePassword(APIEndpoint):
 
 
 class UserLogin(APIEndpoint):
-    __url__ = '/users/operations/login'
+    __url__ = '/operations/login'
     __http_methods__ = ['POST']
 
     def init(self):
@@ -221,7 +221,7 @@ class UserLogin(APIEndpoint):
 
 
 class UserLogout(APIEndpoint):
-    __url__ = '/users/operations/logout'
+    __url__ = '/operations/logout'
     __http_methods__ = ['GET']
 
     def init(self):
@@ -235,7 +235,7 @@ class UserLogout(APIEndpoint):
 
 
 class UserList(APIEndpoint):
-    __url__ = '/users'
+    __url__ = '/'
     __http_methods__ = 'GET'
 
     def init(self):
