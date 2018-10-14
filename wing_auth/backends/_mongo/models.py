@@ -2,7 +2,6 @@ from datetime import datetime, timedelta
 
 from wing_database.utils.mongo_orm.document import Document
 
-
 class User(Document):
     __version__ = '1.0.0'
     __fields__ = [
@@ -10,7 +9,8 @@ class User(Document):
         'password',
         'active',
         'superuser',
-        'created_on'
+        'created_on',
+        'last_updated'
     ]
     __autos__ = {
        'last_updated' : datetime.utcnow 
@@ -22,7 +22,8 @@ class UserToken(Document):
     __fields__ = [
         'user_id',
         'token',
-        'expires'
+        'expires',
+        'last_updated'
     ]
     __autos__ = {
        'last_updated' : datetime.utcnow 
