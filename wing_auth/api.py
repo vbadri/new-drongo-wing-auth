@@ -23,11 +23,11 @@ class UsernameValidator(object):
             )
             return False
 
-        m = re.match('[a-zA-Z][a-zA-Z0-9.]*', self.username)
+        m = re.match('[a-zA-Z][a-zA-Z0-9.@]*', self.username)
         if (not m) or (m.group() != self.username):
             self.api.error(
                 'username',
-                'Only alpha number characters and underscore is allowed.'
+                'Only alpha number characters, underscore, @ and . allowed'
             )
             return False
 
