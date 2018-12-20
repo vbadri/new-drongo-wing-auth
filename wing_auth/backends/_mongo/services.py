@@ -6,14 +6,14 @@ from passlib.hash import pbkdf2_sha256
 
 import pymongo
 
-from .models import User, UserToken
+from .models import User, UserToken, Invite
 
 
 HASHER = pbkdf2_sha256.using(rounds=10000)
 
 class UserServiceBase(object):
     @classmethod
-    def init(cls, module, users_collection='auth_users', tokens_collection='auth_user_tokens'):
+    def init(cls, module, users_collection='auth_users', tokens_collection='auth_user_tokens', invites_collection='auth_invites'):
         cls.module = module
 
         User.set_collection(
@@ -26,6 +26,12 @@ class UserServiceBase(object):
         )
         UserToken.__collection__.create_index([('token', pymongo.HASHED)])
         UserToken.__collection__.create_index([('expires', pymongo.ASCENDING)])
+
+        Invite.set_collection(
+            module.database.instance.get_collection(invites_collection)
+        )
+        Invite.__collection__.create_index([('invite_code', pymongo.HASHED)])
+        Invite.__collection__.create_index([('expires', pymongo.ASCENDING)])
 
 
 class UserForTokenService(UserServiceBase):
@@ -121,3 +127,21 @@ class UserLogoutService(UserServiceBase):
 class UserListService(UserServiceBase):
     def call(self, ctx):
         return User.objects.find()
+
+
+class VerifyInviteService(UserServiceBase):
+    def __init__(self, code):
+        self.code = code
+
+    def call(self):
+        code = Invite.objects.find_one(invite_code=self.code)
+
+        if code is None:
+            return None
+
+        # if code.expires < datetime.utcnow():
+        #     code.delete()
+        #     return None
+
+        # code.refresh(span=self.module.config.token_age)
+        return code

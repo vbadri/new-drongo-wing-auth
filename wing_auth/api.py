@@ -95,6 +95,19 @@ class UserCreate(APIEndpoint):
     def init(self):
         self.query = self.ctx.request.json
         self.auth = self.ctx.modules.auth
+
+        # check for token in case superuser calls
+        self.token = self.ctx.auth.get('token')
+        self.user_token_svc = self.auth.services.UserForTokenService(
+            token=self.token
+        )
+
+        # check for invite code
+        self.code = self.query.get('invite_code')
+        self.auth_invite_svc = self.auth.services.VerifyInviteService(
+            code=self.code
+        )
+
         self.create_user_svc = self.auth.services.UserCreateService(
             username=self.query.get('username'),
             password=self.query.get('password'),
@@ -111,6 +124,47 @@ class UserCreate(APIEndpoint):
             self.valid and
             PasswordValidator(self, self.query.get('password')).validate()
         )
+
+        # call from super user
+        if self.token is not None:
+            self.user = self.user_token_svc.call()
+
+            if self.user is None:
+                self.valid = False
+                self.errors.setdefault('_', []).append(
+                    'Invalid or unauthorized token.'
+                )
+                return
+
+            if not self.user.superuser:
+                self.valid = False
+                self.errors.setdefault('_', []).append(
+                    'Unauthorized! Superusers Only!!'
+                )
+                return
+
+
+        # call from invited candidate
+        if self.code is not None:
+            self.invite = self.auth_invite_svc.call()
+
+            if self.invite is None:
+                self.valid = False
+                self.errors.setdefault('_', []).append(
+                    'Uninvited user or corrupted invitation.'
+                )
+                return
+
+
+
+        # block user if no invitation or no superuser permission
+        if self.token is None and self.code is None:
+                self.valid = False
+                self.errors.setdefault('_', []).append(
+                    'Unauthorized!'
+                )
+                return
+
 
         if self.create_user_svc.check_exists():
             self.error(
