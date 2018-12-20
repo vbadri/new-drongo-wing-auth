@@ -6,14 +6,14 @@ from passlib.hash import pbkdf2_sha256
 
 import pymongo
 
-from .models import User, UserToken, Invite
+from .models import User, UserToken, Invite, UserOrgRole
 
 
 HASHER = pbkdf2_sha256.using(rounds=10000)
 
 class UserServiceBase(object):
     @classmethod
-    def init(cls, module, users_collection='auth_users', tokens_collection='auth_user_tokens', invites_collection='auth_invites'):
+    def init(cls, module, users_collection='auth_users', tokens_collection='auth_user_tokens'):
         cls.module = module
 
         User.set_collection(
@@ -28,10 +28,15 @@ class UserServiceBase(object):
         UserToken.__collection__.create_index([('expires', pymongo.ASCENDING)])
 
         Invite.set_collection(
-            module.database.instance.get_collection(invites_collection)
+            module.database.instance.get_collection('auth_invites')
         )
         Invite.__collection__.create_index([('invite_code', pymongo.HASHED)])
         Invite.__collection__.create_index([('expires', pymongo.ASCENDING)])
+
+        UserOrgRole.set_collection(
+            module.database.instance.get_collection('user_org_roles')
+        )
+        UserOrgRole.__collection__.create_index([('organization_id', pymongo.HASHED)])
 
 
 class UserForTokenService(UserServiceBase):
@@ -134,14 +139,38 @@ class VerifyInviteService(UserServiceBase):
         self.code = code
 
     def call(self):
-        code = Invite.objects.find_one(invite_code=self.code)
+        invite = Invite.objects.find_one(invite_code=self.code)
 
-        if code is None:
+        if invite is None:
             return None
 
         # if code.expires < datetime.utcnow():
         #     code.delete()
         #     return None
 
-        # code.refresh(span=self.module.config.token_age)
-        return code
+        return invite
+
+
+class UserCreateOrgRoleService(UserServiceBase):
+    def __init__(self, username, code):
+        self.username = username
+        self.code = code
+
+    def fetch_invitee(self):
+        invitee = Invite.objects.find_one(invite_code=self.code)
+        return invitee
+
+    def validate_invitee_role(self):
+        invitee = Invite.objects.find_one(invite_code=self.code)
+        return invitee.role is not None and invitee.org_id is not None
+
+    def call(self, ctx=None):
+
+        invitee = self.fetch_invitee()
+
+        return UserOrgRole.create(
+            username=self.username,
+            role=invitee.role,
+            organization_id=invitee.org_id,
+            __ver="1.0.0"
+        )

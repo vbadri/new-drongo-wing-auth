@@ -114,6 +114,11 @@ class UserCreate(APIEndpoint):
             active=self.auth.config.active_on_register
         )
 
+        self.create_user_role_svc = self.auth.services.UserCreateOrgRoleService(
+            username=self.query.get('username'),
+            code=self.code
+        )
+
     def validate(self):
         self.valid = (
             self.valid and
@@ -156,7 +161,6 @@ class UserCreate(APIEndpoint):
                 return
 
 
-
         # block user if no invitation or no superuser permission
         if self.token is None and self.code is None:
                 self.valid = False
@@ -175,6 +179,9 @@ class UserCreate(APIEndpoint):
 
     def call(self):
         self.create_user_svc.call()
+        if self.create_user_role_svc.validate_invitee_role():
+            # invitee has a role which belongs to an org
+            self.create_user_role_svc.call()
         return 'OK'
 
 

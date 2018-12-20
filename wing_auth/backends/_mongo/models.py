@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 
 from wing_database.utils.mongo_orm.document import Document
 
+
 class User(Document):
     __version__ = '1.0.0'
     __fields__ = [
@@ -36,11 +37,14 @@ class UserToken(Document):
         self.expires = datetime.utcnow() + timedelta(minutes=span)
         self.save()
 
+
 class Invite(Document):
     __version__ = '1.0.0'
     __fields__ = [
         'email',
         'invite_code',
+        'role',
+        'org_id',
         'expires',
         'created_on',
         'last_updated'
@@ -52,3 +56,15 @@ class Invite(Document):
     def refresh(self, span):
         self.expires = datetime.utcnow() + timedelta(minutes=span)
         self.save()
+
+
+class UserOrgRole(Document):
+    __fields__ = [
+        'username',
+        'organization_id',
+        'role',
+        'last_updated'
+    ]
+    __autos__ = {
+        'last_updated': datetime.utcnow
+    }
