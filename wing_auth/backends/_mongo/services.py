@@ -134,6 +134,38 @@ class UserListService(UserServiceBase):
         return User.objects.find()
 
 
+# Ravi, please complete this
+class CreateInviteeService(UserServiceBase):
+    def call(self, creator):
+        self.creator = creator
+    
+    def call(self):
+        invitee = Invitee.create()
+
+        return invitee
+
+# Ravi, please complete this
+class InviteListService(UserServiceBase):
+    def call(self):
+        # find only non-expired invitees?
+        return Invitee.objects.find()
+
+
+class InviteeForCodeService(UserServiceBase):
+    def __init__(self, code):
+        self.code = code
+
+    def call(self):
+        invitee = Invitee.objects.find_one(invite_code=self.code)
+
+        if invitee is None:
+            return None
+
+        if invitee.expires < datetime.utcnow():
+            return None
+
+        return invitee
+
 class VerifyInviteService(UserServiceBase):
     def __init__(self, code):
         self.code = code
@@ -150,27 +182,3 @@ class VerifyInviteService(UserServiceBase):
 
         return invite
 
-
-class UserCreateOrgRoleService(UserServiceBase):
-    def __init__(self, username, code):
-        self.username = username
-        self.code = code
-
-    def fetch_invitee(self):
-        invitee = Invite.objects.find_one(invite_code=self.code)
-        return invitee
-
-    def validate_invitee_role(self):
-        invitee = Invite.objects.find_one(invite_code=self.code)
-        return invitee.role is not None and invitee.org_id is not None
-
-    def call(self, ctx=None):
-
-        invitee = self.fetch_invitee()
-
-        return UserOrgRole.create(
-            username=self.username,
-            role=invitee.role,
-            organization_id=invitee.org_id,
-            __ver="1.0.0"
-        )

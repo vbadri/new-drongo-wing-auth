@@ -38,6 +38,22 @@ class UserToken(Document):
         self.save()
 
 
+class Invitee(Document):
+    __version__ = '1.0.0'
+    __fields__ = [
+        'invite_code',
+        'creator',
+        'expires',
+        'last_updated'
+        ]
+    
+    __resolve__ = {
+        'creator': ('creator_id', User)
+    }
+    __autos__ = {
+       'last_updated' : datetime.utcnow 
+    }
+
 class Invite(Document):
     __version__ = '1.0.0'
     __fields__ = [
@@ -49,9 +65,6 @@ class Invite(Document):
         'created_on',
         'last_updated'
     ]
-    __autos__ = {
-       'last_updated' : datetime.utcnow 
-    }
 
     def refresh(self, span):
         self.expires = datetime.utcnow() + timedelta(minutes=span)

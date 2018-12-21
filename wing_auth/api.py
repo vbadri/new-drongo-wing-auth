@@ -91,6 +91,7 @@ class UserMe(APIEndpoint):
 class UserCreate(APIEndpoint):
     __url__ = '/'
     __http_methods__ = ['POST']
+    
 
     def init(self):
         self.query = self.ctx.request.json
@@ -102,21 +103,10 @@ class UserCreate(APIEndpoint):
             token=self.token
         )
 
-        # check for invite code
-        self.code = self.query.get('invite_code')
-        self.auth_invite_svc = self.auth.services.VerifyInviteService(
-            code=self.code
-        )
-
         self.create_user_svc = self.auth.services.UserCreateService(
             username=self.query.get('username'),
             password=self.query.get('password'),
             active=self.auth.config.active_on_register
-        )
-
-        self.create_user_role_svc = self.auth.services.UserCreateOrgRoleService(
-            username=self.query.get('username'),
-            code=self.code
         )
 
     def validate(self):
@@ -148,21 +138,8 @@ class UserCreate(APIEndpoint):
                 )
                 return
 
-
-        # call from invited candidate
-        if self.code is not None:
-            self.invite = self.auth_invite_svc.call()
-
-            if self.invite is None:
-                self.valid = False
-                self.errors.setdefault('_', []).append(
-                    'Uninvited user or corrupted invitation.'
-                )
-                return
-
-
         # block user if no invitation or no superuser permission
-        if self.token is None and self.code is None:
+        if self.token is None:
                 self.valid = False
                 self.errors.setdefault('_', []).append(
                     'Unauthorized!'
