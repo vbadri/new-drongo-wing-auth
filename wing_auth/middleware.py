@@ -18,8 +18,9 @@ class AuthMiddleware(object):
             ctx.auth.user    = None
 
             invite_code = None
-            if 'INVITE_CODE' in ctx.request.env:
-                code = ctx.request.env['INVITE_CODE']
+
+            if 'HTTP_INVITE_CODE' in ctx.request.env:
+                code = ctx.request.env['HTTP_INVITE_CODE']
                 self.load_invitee_from_code(ctx, code)
 
     def load_user_from_token(self, ctx, token):

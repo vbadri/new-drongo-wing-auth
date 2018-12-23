@@ -42,7 +42,8 @@ class Invitee(Document):
     __version__ = '1.0.0'
     __fields__ = [
         'invite_code',
-        'creator',
+        'creator_id',
+        'invitee_email_id',
         'expires',
         'last_updated'
         ]
@@ -54,30 +55,6 @@ class Invitee(Document):
        'last_updated' : datetime.utcnow 
     }
 
-class Invite(Document):
-    __version__ = '1.0.0'
-    __fields__ = [
-        'email',
-        'invite_code',
-        'role',
-        'org_id',
-        'expires',
-        'created_on',
-        'last_updated'
-    ]
-
-    def refresh(self, span):
+    def set_expiry(self, span):
         self.expires = datetime.utcnow() + timedelta(minutes=span)
         self.save()
-
-
-class UserOrgRole(Document):
-    __fields__ = [
-        'username',
-        'organization_id',
-        'role',
-        'last_updated'
-    ]
-    __autos__ = {
-        'last_updated': datetime.utcnow
-    }

@@ -6,8 +6,7 @@ from passlib.hash import pbkdf2_sha256
 
 import pymongo
 
-from .models import User, UserToken, Invite, UserOrgRole
-
+from .models import User, UserToken, Invitee
 
 HASHER = pbkdf2_sha256.using(rounds=10000)
 
@@ -27,16 +26,11 @@ class UserServiceBase(object):
         UserToken.__collection__.create_index([('token', pymongo.HASHED)])
         UserToken.__collection__.create_index([('expires', pymongo.ASCENDING)])
 
-        Invite.set_collection(
+        Invitee.set_collection(
             module.database.instance.get_collection('auth_invites')
         )
-        Invite.__collection__.create_index([('invite_code', pymongo.HASHED)])
-        Invite.__collection__.create_index([('expires', pymongo.ASCENDING)])
-
-        UserOrgRole.set_collection(
-            module.database.instance.get_collection('user_org_roles')
-        )
-        UserOrgRole.__collection__.create_index([('organization_id', pymongo.HASHED)])
+        Invitee.__collection__.create_index([('invite_code', pymongo.HASHED)])
+        Invitee.__collection__.create_index([('expires', pymongo.ASCENDING)])
 
 
 class UserForTokenService(UserServiceBase):
@@ -136,19 +130,26 @@ class UserListService(UserServiceBase):
 
 # Ravi, please complete this
 class CreateInviteeService(UserServiceBase):
-    def call(self, creator):
-        self.creator = creator
+    def __init__(self, creator, email):
+        self.creator = User.objects.find_one(_id=creator)
+        self.invitee_email_id = email
     
     def call(self):
-        invitee = Invitee.create()
+        invitee = Invitee.create(
+            invite_code=uuid.uuid4().hex,
+            creator=self.creator,
+            invitee_email_id=self.invitee_email_id
+        )
+        invitee.set_expiry(span=self.module.config.invite_age)
 
         return invitee
 
 # Ravi, please complete this
-class InviteListService(UserServiceBase):
-    def call(self):
+# class InviteListService(UserServiceBase):
+    # def call(self):
         # find only non-expired invitees?
-        return Invitee.objects.find()
+        # self.now = datetime.now()
+        # return Invitee.objects.find({'expires': self.now})
 
 
 class InviteeForCodeService(UserServiceBase):
@@ -171,7 +172,7 @@ class VerifyInviteService(UserServiceBase):
         self.code = code
 
     def call(self):
-        invite = Invite.objects.find_one(invite_code=self.code)
+        invite = Invitee.objects.find_one(invite_code=self.code)
 
         if invite is None:
             return None

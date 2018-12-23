@@ -21,7 +21,8 @@ class Auth(Module):
         'enable_api': False,
         'enable_views': False,
 
-        'token_age': 60 * 60,  # (60 minutes)
+        'token_age': 60,  # (60 minutes)
+        'invite_age': 60 * 24,  # (24 Hours)
         'token_in_session': False,
     }
 
