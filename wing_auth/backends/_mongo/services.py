@@ -128,16 +128,18 @@ class UserListService(UserServiceBase):
         return User.objects.find()
 
 
-# Ravi, please complete this
 class CreateInviteeService(UserServiceBase):
-    def __init__(self, creator, email):
-        self.creator = User.objects.find_one(_id=creator)
+    def __init__(self, creator_id, email):
+        self.creator = User.objects.find_one(_id=creator_id)
         self.invitee_email_id = email
     
     def call(self):
+        if self.creator is None:
+            return None
+
         invitee = Invitee.create(
             invite_code=uuid.uuid4().hex,
-            creator=self.creator,
+            creator=self.creator._id,
             invitee_email_id=self.invitee_email_id
         )
         invitee.set_expiry(span=self.module.config.invite_age)
@@ -167,6 +169,7 @@ class InviteeForCodeService(UserServiceBase):
 
         return invitee
 
+# Ravi, do we need this class? Maybe remove it?
 class VerifyInviteService(UserServiceBase):
     def __init__(self, code):
         self.code = code
