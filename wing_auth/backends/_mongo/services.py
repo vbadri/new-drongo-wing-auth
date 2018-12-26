@@ -139,19 +139,19 @@ class CreateInviteeService(UserServiceBase):
 
         invitee = Invitee.create(
             invite_code=uuid.uuid4().hex,
-            creator=self.creator._id,
+            creator_id=self.creator._id,
             invitee_email_id=self.invitee_email_id
         )
         invitee.set_expiry(span=self.module.config.invite_age)
 
         return invitee
 
-# Ravi, please complete this
+
 # class InviteListService(UserServiceBase):
-    # def call(self):
-        # find only non-expired invitees?
-        # self.now = datetime.now()
-        # return Invitee.objects.find({'expires': self.now})
+#     def call(self):
+#         self.now = datetime.now()
+#         convert ({expires: {"$lt": self.now}})
+#         return Invitee.objects.find(expires<=self.now)
 
 
 class InviteeForCodeService(UserServiceBase):
@@ -168,21 +168,3 @@ class InviteeForCodeService(UserServiceBase):
             return None
 
         return invitee
-
-# Ravi, do we need this class? Maybe remove it?
-class VerifyInviteService(UserServiceBase):
-    def __init__(self, code):
-        self.code = code
-
-    def call(self):
-        invite = Invitee.objects.find_one(invite_code=self.code)
-
-        if invite is None:
-            return None
-
-        # if code.expires < datetime.utcnow():
-        #     code.delete()
-        #     return None
-
-        return invite
-
