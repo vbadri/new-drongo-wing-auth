@@ -1,3 +1,5 @@
+import logging
+logger = logging.getLogger('wing-auth-middleware')
 class AuthMiddleware(object):
     def before(self, ctx):
         token = None
@@ -18,10 +20,12 @@ class AuthMiddleware(object):
             ctx.auth.user    = None
 
             invite_code = None
-
+            logger.info("CTX env {}".format(ctx.request.env))
             if 'HTTP_INVITE_CODE' in ctx.request.env:
                 code = ctx.request.env['HTTP_INVITE_CODE']
+                logger.info("Got code {}".format(code))
                 self.load_invitee_from_code(ctx, code)
+                logger.info("Got invitee {}".format(ctx.auth.invitee))
 
     def load_user_from_token(self, ctx, token):
         auth = ctx.modules.auth
