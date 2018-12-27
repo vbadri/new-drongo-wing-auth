@@ -58,3 +58,19 @@ class Invitee(Document):
     def set_expiry(self, span):
         self.expires = datetime.utcnow() + timedelta(minutes=span)
         self.save()
+
+
+class Device(Document):
+    __version__ = '1.0.0'
+    __fields__ = [
+        'user_id',
+        'api_key',
+        'api_secret',
+        'last_updated'
+    ]
+    __autos__ = {
+       'last_updated' : datetime.utcnow 
+    }
+    __resolve__ = {
+        'user': ('user_id', User)
+    }

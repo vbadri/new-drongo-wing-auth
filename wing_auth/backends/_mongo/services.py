@@ -6,7 +6,7 @@ from passlib.hash import pbkdf2_sha256
 
 import pymongo
 
-from .models import User, UserToken, Invitee
+from .models import User, UserToken, Invitee, Device
 
 HASHER = pbkdf2_sha256.using(rounds=10000)
 
@@ -31,6 +31,11 @@ class UserServiceBase(object):
         )
         Invitee.__collection__.create_index([('invite_code', pymongo.HASHED)])
         Invitee.__collection__.create_index([('expires', pymongo.ASCENDING)])
+
+        Device.set_collection(
+            module.database.instance.get_collection('auth_devices')
+        )
+        Device.__collection__.create_index([('api_key', pymongo.HASHED)])
 
 
 class UserForTokenService(UserServiceBase):
@@ -168,3 +173,20 @@ class InviteeForCodeService(UserServiceBase):
             return None
 
         return invitee
+
+
+class DeviceForKeyService(UserServiceBase):
+    def __init__(self, key, secret):
+        self.key = key
+        self.secret = secret
+
+    def call(self):
+        device = Invitee.objects.find_one(api_key=self.key)
+
+        if device is None:
+            return None
+
+        if device.api_secret != self.secret:
+            return None
+
+        return device
