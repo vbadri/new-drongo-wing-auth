@@ -1,12 +1,13 @@
 import uuid
-
+from os import urandom
+from base64 import b64encode
 from datetime import datetime
 
 from passlib.hash import pbkdf2_sha256
 
 import pymongo
 
-from .models import User, UserToken, Invitee
+from .models import User, UserToken, Invitee, AuthServer
 
 HASHER = pbkdf2_sha256.using(rounds=10000)
 
@@ -26,11 +27,20 @@ class UserServiceBase(object):
         UserToken.__collection__.create_index([('token', pymongo.HASHED)])
         UserToken.__collection__.create_index([('expires', pymongo.ASCENDING)])
 
+
+        # Ravi, do the following belong in UserServiceBase? 
+        # Where is UserServiceBase used anyway 
+
         Invitee.set_collection(
             module.database.instance.get_collection('auth_invites')
         )
         Invitee.__collection__.create_index([('invite_code', pymongo.HASHED)])
         Invitee.__collection__.create_index([('expires', pymongo.ASCENDING)])
+
+        AuthServer.set_collection(
+            module.database.instance.get_collection('auth_servers')
+        )
+        AuthServer.__collection__.create_index([('api_key', pymongo.HASHED)])
 
 
 class UserForTokenService(UserServiceBase):
@@ -168,3 +178,36 @@ class InviteeForCodeService(UserServiceBase):
             return None
 
         return invitee
+
+
+class CreateServerCredentialsService(UserServiceBase):
+    def __init__(self, server_name, server_description):
+        self.server_name = server_name
+        self.server_description = server_description
+
+
+    def call(self):
+        auth_server = AuthServer.create(
+            server_name = self.server_name,
+            server_description = self.server_description,
+            api_key = uuid.uuid4().hex,
+            api_secret = b64encode(urandom(64)).decode('utf-8')
+        )
+        return auth_server
+                
+
+class ServerFromCredentialsService(UserServiceBase):
+    def __init__(self, key, secret):
+        self.key = key
+        self.secret = secret
+
+    def call(self):
+        auth_server = AuthServer.objects.find_one(api_key=self.key)
+
+        if auth_server is None:
+            return None
+
+        if auth_server.api_secret != self.secret:
+            return None
+
+        return auth_server

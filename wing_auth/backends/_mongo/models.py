@@ -58,3 +58,17 @@ class Invitee(Document):
     def set_expiry(self, span):
         self.expires = datetime.utcnow() + timedelta(minutes=span)
         self.save()
+
+
+class AuthServer(Document):
+    __version__ = '1.0.0'
+    __fields__ = [
+        'server_name',
+        'server_description',
+        'api_key',
+        'api_secret',
+        'last_updated'
+    ]
+    __autos__ = {
+       'last_updated' : datetime.utcnow 
+    }
