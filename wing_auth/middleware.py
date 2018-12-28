@@ -51,4 +51,4 @@ class AuthMiddleware(object):
         auth_credentials_svc = auth.services.ServerFromCredentialsService(key=key, secret=secret)
 
         ctx.auth.api_key     = key
-        ctx.auth.auth_server = auth_credentails_svc.call()
+        ctx.auth.auth_server = auth_credentials_svc.call()

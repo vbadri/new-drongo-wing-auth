@@ -1,12 +1,13 @@
 import uuid
-
+from os import urandom
+from base64 import b64encode
 from datetime import datetime
 
 from passlib.hash import pbkdf2_sha256
 
 import pymongo
 
-from .models import User, UserToken, Invitee, Device
+from .models import User, UserToken, Invitee, AuthServer
 
 HASHER = pbkdf2_sha256.using(rounds=10000)
 
@@ -184,9 +185,14 @@ class CreateServerCredentialsService(UserServiceBase):
         self.server_name = server_name
         self.server_description = server_description
 
+
     def call(self):
-        # Ravi, please create this..
-        auth_server = AuthServer.create()
+        auth_server = AuthServer.create(
+            server_name = self.server_name,
+            server_description = self.server_description,
+            api_key = uuid.uuid4().hex,
+            api_secret = b64encode(urandom(64)).decode('utf-8')
+        )
         return auth_server
                 
 
@@ -204,4 +210,4 @@ class ServerFromCredentialsService(UserServiceBase):
         if auth_server.api_secret != self.secret:
             return None
 
-        return device
+        return auth_server

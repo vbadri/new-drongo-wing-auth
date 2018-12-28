@@ -64,7 +64,7 @@ class AuthServer(Document):
     __version__ = '1.0.0'
     __fields__ = [
         'server_name',
-        'server_description'
+        'server_description',
         'api_key',
         'api_secret',
         'last_updated'
