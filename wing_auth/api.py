@@ -156,9 +156,6 @@ class UserCreate(APIEndpoint):
 
     def call(self):
         self.create_user_svc.call()
-        if self.create_user_role_svc.validate_invitee_role():
-            # invitee has a role which belongs to an org
-            self.create_user_role_svc.call()
         return 'OK'
 
 
