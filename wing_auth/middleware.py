@@ -2,6 +2,10 @@ class AuthMiddleware(object):
     def before(self, ctx):
         token = None
 
+        ctx.auth.user    = None
+        ctx.auth.invitee = None
+        ctx.auth.auth_server = None
+
         if 'HTTP_AUTHORIZATION' in ctx.request.env:
             token = ctx.request.env['HTTP_AUTHORIZATION']
 
@@ -13,17 +17,17 @@ class AuthMiddleware(object):
                 pass
 
         if token is not None:
+            # This is a regular system user using a token derived
+            # from their username and password. Load the user and
+            # we are done
             self.load_user_from_token(ctx, token)
-            ctx.auth.invitee = None
         else:
-            ctx.auth.user    = None
-
             if 'HTTP_API_KEY' in ctx.request.env:
                 key = ctx.request.env['HTTP_API_KEY']
                 secret = ctx.request.env['HTTP_API_SECRET'] or None
-                self.load_device_from_key(ctx, key, secret)
+                self.load_server_from_credentials(ctx, key, secret)
 
-            if 'HTTP_INVITE_CODE' in ctx.request.env:
+            elif 'HTTP_INVITE_CODE' in ctx.request.env:
                 code = ctx.request.env['HTTP_INVITE_CODE']
                 self.load_invitee_from_code(ctx, code)
 
@@ -42,9 +46,9 @@ class AuthMiddleware(object):
         ctx.auth.code = code
         ctx.auth.invitee = invitee_code_svc.call()
 
-    def load_device_from_key(self, ctx, key, secret):
+    def load_server_from_credentials(self, ctx, key, secret):
         auth = ctx.modules.auth
-        device_key_svc = auth.services.DeviceForKeyService(key=key, secret=secret)
+        auth_credentials_svc = auth.services.ServerFromCredentialsService(key=key, secret=secret)
 
-        ctx.auth.api_key = key
-        ctx.auth.device = device_key_svc.call()
+        ctx.auth.api_key     = key
+        ctx.auth.auth_server = auth_credentails_svc.call()

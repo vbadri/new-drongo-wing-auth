@@ -26,16 +26,20 @@ class UserServiceBase(object):
         UserToken.__collection__.create_index([('token', pymongo.HASHED)])
         UserToken.__collection__.create_index([('expires', pymongo.ASCENDING)])
 
+
+        # Ravi, do the following belong in UserServiceBase? 
+        # Where is UserServiceBase used anyway 
+
         Invitee.set_collection(
             module.database.instance.get_collection('auth_invites')
         )
         Invitee.__collection__.create_index([('invite_code', pymongo.HASHED)])
         Invitee.__collection__.create_index([('expires', pymongo.ASCENDING)])
 
-        Device.set_collection(
-            module.database.instance.get_collection('auth_devices')
+        AuthServer.set_collection(
+            module.database.instance.get_collection('auth_servers')
         )
-        Device.__collection__.create_index([('api_key', pymongo.HASHED)])
+        AuthServer.__collection__.create_index([('api_key', pymongo.HASHED)])
 
 
 class UserForTokenService(UserServiceBase):
@@ -175,18 +179,29 @@ class InviteeForCodeService(UserServiceBase):
         return invitee
 
 
-class DeviceForKeyService(UserServiceBase):
+class CreateServerCredentialsService(UserServiceBase):
+    def __init__(self, server_name, server_description):
+        self.server_name = server_name
+        self.server_description = server_description
+
+    def call(self):
+        # Ravi, please create this..
+        auth_server = AuthServer.create()
+        return auth_server
+                
+
+class ServerFromCredentialsService(UserServiceBase):
     def __init__(self, key, secret):
         self.key = key
         self.secret = secret
 
     def call(self):
-        device = Invitee.objects.find_one(api_key=self.key)
+        auth_server = AuthServer.objects.find_one(api_key=self.key)
 
-        if device is None:
+        if auth_server is None:
             return None
 
-        if device.api_secret != self.secret:
+        if auth_server.api_secret != self.secret:
             return None
 
         return device
