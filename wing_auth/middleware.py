@@ -39,7 +39,7 @@ class AuthMiddleware(object):
                     x1 = ctx.request.env.keys() 
                 except:
                     x1 = ctx.request.env
-                logger.info("No valid credentials in HTTP request {}".format(x1))
+                logger.info("No valid credentials in body".format(body))
 
 
     def load_user_from_token(self, ctx, token):
