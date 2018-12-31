@@ -26,10 +26,13 @@ class AuthMiddleware(object):
             body = ctx.request.json
             if not isinstance(body, dict):
                 body = {}
+            logger.info("Body {}".format(body))
+
                 
             if 'api_key' in body:
                 key    = body['api_key']
                 secret = body['api_secret'] or None
+                logger.info("Key = {}, Secrete = {}".format(key, secret))
                 self.load_server_from_credentials(ctx, key, secret)
 
             elif 'HTTP_INVITE_CODE' in ctx.request.env:
@@ -43,6 +46,7 @@ class AuthMiddleware(object):
                 except:
                     x1 = ctx.request.env
                 logger.info("No valid credentials in body".format(ctx.request.env))
+                logger.info(".............................")
 
 
     def load_user_from_token(self, ctx, token):
