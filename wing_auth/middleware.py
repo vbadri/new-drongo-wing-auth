@@ -23,9 +23,10 @@ class AuthMiddleware(object):
             # we are done
             self.load_user_from_token(ctx, token)
         else:
-            if 'api_key' in ctx.request.env:
-                key = ctx.request.env['api_key']
-                secret = ctx.request.env['api_secret'] or None
+            body = ctx.request.env.get('BODY', {})
+            if 'api_key' in body:
+                key = body['api_key']
+                secret = body['api_secret'] or None
                 self.load_server_from_credentials(ctx, key, secret)
 
             elif 'HTTP_INVITE_CODE' in ctx.request.env:
