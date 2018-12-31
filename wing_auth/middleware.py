@@ -23,11 +23,13 @@ class AuthMiddleware(object):
             # we are done
             self.load_user_from_token(ctx, token)
         else:
-            body = ctx.request.json
-            if not isinstance(body, dict):
-                body = {}
-            logger.info("Body {}".format(body))
-
+            body = {}
+            try:
+                body = ctx.request.json
+                if not isinstance(body, dict):
+                    body = {}
+            except:
+                pass
                 
             if 'api_key' in body:
                 key    = body['api_key']
