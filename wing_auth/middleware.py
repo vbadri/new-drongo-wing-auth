@@ -34,7 +34,11 @@ class AuthMiddleware(object):
                 self.load_invitee_from_code(ctx, code)
                 logger.info("Got invitee {}".format(ctx.auth.invitee))
             else:
-                logger.info("No valid credentials in HTTP request {}") # {}".format(ctx.request.env))
+                try:
+                    x1 = ctx.request.env.keys() 
+                except:
+                    x1 = ctx.request.env
+                logger.info("No valid credentials in HTTP request {}".format(x1))
 
 
     def load_user_from_token(self, ctx, token):
