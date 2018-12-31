@@ -23,7 +23,7 @@ class AuthMiddleware(object):
             # we are done
             self.load_user_from_token(ctx, token)
         else:
-            body = ctx.request.env.get('BODY', {})
+            body = ctx.request.json
             if not isinstance(body, dict):
                 body = {}
                 
