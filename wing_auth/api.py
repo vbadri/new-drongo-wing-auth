@@ -189,8 +189,18 @@ class UserChangePassword(APIEndpoint):
         )
 
         # Let superuser change password without old password
-        if 'user' in self.ctx.auth and self.ctx.auth.user.superuser:
+        if self.ctx.auth.user is None:
+            self.error(
+                group='credentials',
+                message='Need to be a valid logged-in user')
+
+        if self.ctx.auth.user.superuser:
             return
+
+        if self.ctx.auth.user.username != self.username:
+            self.error(
+                group='credentials',
+                message='Non-admin users can only change their own password')
 
         if 'password' not in self.query or not self.query.password:
             self.error(
