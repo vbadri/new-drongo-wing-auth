@@ -197,7 +197,7 @@ class UserChangePassword(APIEndpoint):
         if self.ctx.auth.user.superuser:
             return
 
-        if self.ctx.auth.user.username != self.username:
+        if self.ctx.auth.user.username != self.query.get('username'):
             self.error(
                 group='credentials',
                 message='Non-admin users can only change their own password')
