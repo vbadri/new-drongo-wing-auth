@@ -201,6 +201,7 @@ class UserChangePassword(APIEndpoint):
             self.error(
                 group='credentials',
                 message='Non-admin users can only change their own password')
+                return
 
         if 'password' not in self.query or not self.query.password:
             self.error(

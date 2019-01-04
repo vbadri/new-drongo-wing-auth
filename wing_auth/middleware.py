@@ -37,8 +37,8 @@ class AuthMiddleware(object):
                 logger.info("Key = {}, Secrete = {}".format(key, secret))
                 self.load_server_from_credentials(ctx, key, secret)
 
-            elif 'HTTP_INVITE_CODE' in ctx.request.env:
-                code = ctx.request.env['HTTP_INVITE_CODE']
+            elif 'invite_code' in body:
+                code = body['invite_code']
                 logger.info("Got code {}".format(code))
                 self.load_invitee_from_code(ctx, code)
                 logger.info("Got invitee {}".format(ctx.auth.invitee))
