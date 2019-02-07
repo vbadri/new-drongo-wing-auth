@@ -43,11 +43,10 @@ class AuthMiddleware(object):
                 logger.info("Got code {}".format(code))
                 self.load_invitee_from_code(ctx, code)
                 logger.info("Got invitee {}".format(ctx.auth.invitee))
-				
-			elif 'voice_assistant_token' in body:
-				access_token = body['voice_assistant_token']
-				self.load_assistant_from_token(ctx, access_token)		
-				
+
+            elif 'voice_assistant_token' in body:
+                access_token = body['voice_assistant_token']
+                self.load_assistant_from_token(ctx, access_token)		
             else:
                 try:
                     x1 = ctx.request.env.keys() 
