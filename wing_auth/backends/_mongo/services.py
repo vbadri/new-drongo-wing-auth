@@ -38,9 +38,12 @@ class UserServiceBase(object):
         Invitee.__collection__.create_index([('expires', pymongo.ASCENDING)])
 
         AuthServer.set_collection(
-            module.database.instance.get_collection('auth_servers')
-        )
+            module.database.instance.get_collection('auth_servers'))
         AuthServer.__collection__.create_index([('api_key', pymongo.HASHED)])
+
+        VoiceAssistant.set_collection(
+            module.database.instance.get_collection('voice_assistants'))
+        VoiceAssistant.__collection__.create_index([('access_token', pymongo.HASHED)])
 
 
 class UserForTokenService(UserServiceBase):
@@ -227,7 +230,10 @@ class UserForAccessTokenService(UserServiceBase):
         # new token, validate token
         if voice_assistant is None:
             profileURL = 'https://api.amazon.com/user/profile?access_token='+self.access_token
-            r = requests.get(url=profileURL)
+            try: 
+                r = requests.get(url=profileURL,timeout=2.0)
+            except:
+                return None, None
 
             if r.status_code == 200:
                 data = r.json()
