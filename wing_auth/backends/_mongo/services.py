@@ -5,9 +5,9 @@ from datetime import datetime
 
 from passlib.hash import pbkdf2_sha256
 
-import pymongo
+import pymongo, logging, requests
 
-from .models import User, UserToken, Invitee, AuthServer
+from .models import User, UserToken, Invitee, AuthServer, VoiceAssistant
 
 HASHER = pbkdf2_sha256.using(rounds=10000)
 
@@ -211,3 +211,40 @@ class ServerFromCredentialsService(UserServiceBase):
             return None
 
         return auth_server
+
+
+class UserForAccessTokenService(UserServiceBase):
+    def __init__(self, access_token):
+        self.access_token = access_token
+
+    def call(self):
+
+        voice_assistant = VoiceAssistant.objects.find_one(access_token=self.access_token)
+        # validated token, check expiry
+        if voice_assistant is not None and voice_assistant.expires < datetime.utcnow():
+            return None, None
+
+        # new token, validate token
+        if voice_assistant is None:
+            profileURL = 'https://api.amazon.com/user/profile?access_token='+self.access_token
+            r = requests.get(url=profileURL)
+
+            if r.status_code == 200:
+                data = r.json()
+                voice_assistant = VoiceAssistant.objects.find_one(email_id=data['email'])
+
+                # account is not linked with us
+                if voice_assistant is None:
+                    return None, None
+
+                voice_assistant.access_token = self.access_token
+                voice_assistant.set_expiry(delta=self.module.config.token_age)
+                voice_assistant.save(force=True)   
+                user = User.objects.find_one(_id=voice_assistant.user_id)
+                return user, voice_assistant
+
+            else:
+                return None, None
+
+        user = User.objects.find_one(_id=voice_assistant.user_id)
+        return user, voice_assistant

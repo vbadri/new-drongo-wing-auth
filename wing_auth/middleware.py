@@ -7,6 +7,7 @@ class AuthMiddleware(object):
         ctx.auth.user    = None
         ctx.auth.invitee = None
         ctx.auth.auth_server = None
+        ctx.auth.voice_assistant = None
 
         if 'HTTP_AUTHORIZATION' in ctx.request.env:
             token = ctx.request.env['HTTP_AUTHORIZATION']
@@ -42,6 +43,11 @@ class AuthMiddleware(object):
                 logger.info("Got code {}".format(code))
                 self.load_invitee_from_code(ctx, code)
                 logger.info("Got invitee {}".format(ctx.auth.invitee))
+				
+			elif 'voice_assistant_token' in body:
+				access_token = body['voice_assistant_token']
+				self.load_assistant_from_token(ctx, access_token)		
+				
             else:
                 try:
                     x1 = ctx.request.env.keys() 
@@ -67,6 +73,10 @@ class AuthMiddleware(object):
     def load_server_from_credentials(self, ctx, key, secret):
         auth = ctx.modules.auth
         auth_credentials_svc = auth.services.ServerFromCredentialsService(key=key, secret=secret)
-
         ctx.auth.api_key     = key
         ctx.auth.auth_server = auth_credentials_svc.call()
+
+    def load_assistant_from_token(self, ctx, access_token):
+        auth = ctx.modules.auth
+        assistant_svc = auth.services.UserForAccessTokenService(access_token=access_token)
+        ctx.auth.user, ctx.auth.voice_assistant = assistant_svc.call()

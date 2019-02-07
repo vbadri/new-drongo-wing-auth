@@ -72,3 +72,25 @@ class AuthServer(Document):
     __autos__ = {
        'last_updated' : datetime.utcnow 
     }
+
+
+class VoiceAssistant(Document):
+    __version__ = '1.0.0'
+    __fields__ = [
+        'access_token',
+        'email_id',
+        'user_id',
+        'expires',
+        'last_updated'
+        ]
+    
+    __resolve__ = {
+        'user': ('user_id', User)
+    }
+    __autos__ = {
+       'last_updated' : datetime.utcnow 
+    }
+
+    def set_expiry(self, delta):
+        self.expires = datetime.utcnow() + timedelta(minutes=delta)
+        self.save()
