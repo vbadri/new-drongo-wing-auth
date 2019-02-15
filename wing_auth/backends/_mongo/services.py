@@ -8,6 +8,7 @@ from passlib.hash import pbkdf2_sha256
 import pymongo, logging, requests
 
 from .models import User, UserToken, Invitee, AuthServer, VoiceAssistant
+from ...redis_client    import RedisWrapper
 
 HASHER = pbkdf2_sha256.using(rounds=10000)
 
@@ -128,6 +129,11 @@ class UserLogoutService(UserServiceBase):
     def expire_token(self, token):
         token = UserToken.objects.find_one(token=token)
         if token is not None:
+            # clear user cache
+            r = RedisWrapper().redis_connect(server_key='local_server')
+            keys = r.keys(str(token.user_id)+':*')
+            for key in keys:
+                r.delete(key)
             token.delete()
 
     def call(self, ctx):
