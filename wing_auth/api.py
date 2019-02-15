@@ -230,7 +230,6 @@ class UserLogin(APIEndpoint):
         self.query = dict2.from_dict(self.ctx.request.json)
         self.auth = self.ctx.modules.auth
 
-        logger.info("Got here with query = {}".format(self.query))
         self.login_svc = self.auth.services.UserLoginService(
             username=self.query.username,
             password=self.query.password
@@ -255,7 +254,6 @@ class UserLogin(APIEndpoint):
             self.error(message='Invalid username or password.')
             self.auth.services.UserLogoutService().call(self.ctx)
         
-        logger.info("Validation done")
 
     def call(self):
         token = self.login_svc.create_token()
@@ -263,7 +261,6 @@ class UserLogin(APIEndpoint):
         if self.auth.config.token_in_session:
             self.login_svc.authenticate_session(self.ctx, token)
 
-        logger.info("All done, got user = {}".format(self.ctx.auth.user))
         self.status(HttpStatusCodes.HTTP_202)
 
         return {
